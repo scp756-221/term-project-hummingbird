@@ -53,7 +53,7 @@ def health():
 @bp.route('/readiness')
 @metrics.do_not_track()
 def readiness():
-    return Response("", status=200, mimetype="application/json")
+    pass
 
 
 @bp.route('/', methods=['POST'])
