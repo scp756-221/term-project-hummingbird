@@ -5,8 +5,6 @@ WORKDIR /code
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY app.py ./
+COPY mcli.py .
 
-EXPOSE 30001
-
-CMD ["python", "app.py", "30001"]
+CMD ["python", "mcli.py", "0.0.0.0", "30001"]
