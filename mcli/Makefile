@@ -2,7 +2,7 @@
 
 VER=v0.8
 
-SERVER=`docker inspect s2 --format '{{.NetworkSettings.IPAddress}}'`
+SERVER=`docker inspect s3 --format '{{.NetworkSettings.IPAddress}}'`
 PORT=30001
 
 build-mcli:

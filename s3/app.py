@@ -6,7 +6,7 @@ Sample application---music service.
 # Standard library modules
 import logging
 import sys
-
+import csv
 # Installed packages
 from flask import Blueprint
 from flask import Flask
@@ -42,10 +42,15 @@ def load_db():
             database[id] = (userId, songId, playlistId)
 
 @bp.route('/', methods=['GET'])
-@metrics.do_not_track()
-def hello_world():
-    return ("playlist api working!")
-
+def list_all():
+    global database
+    response = {
+        "Count": len(database),
+        "Items":
+            [{'userId': value[0], 'songId': value[1], 'playlistId': value[2], 'UUID':id}
+             for id, value in database.items()]
+    }
+    return response
 
 @bp.route('/health')
 @metrics.do_not_track()
@@ -62,20 +67,36 @@ def readiness():
 
 @bp.route('/', methods=['POST'])
 def create_playlist():
-    pass
+    global database
+    try:
+        content = request.get_json()
+        UserID = content['UserID']
+        SongID = content['SongID']
+    except Exception:
+        return app.make_response(
+            ({"Message": "Error reading arguments"}, 400)
+            )
+    PlaylistID = int(database[max(database)][2]) + 1
+    id = int(max(database)) + 1
+    database[id] = (UserID, SongID,str(PlaylistID))
+    response = {
+        "id": id
+    }
+    return response
 
-@bp.route('/<playlist_id>', methods=['DELETE'])
-def delete_playlist():
-    pass
 
-@bp.route('/<playlist_id>', methods=['GET'])
-def get_playlist():
-    pass
+# @bp.route('/<playlist_id>', methods=['DELETE'])
+# def delete_playlist():
+#     pass
+
+# @bp.route('/<playlist_id>', methods=['GET'])
+# def get_playlist():
+#     pass
 
 
-@bp.route('/<playlist_id>', methods=['PUT'])
-def update_playlist():
-    pass
+# @bp.route('/<playlist_id>', methods=['PUT'])
+# def update_playlist():
+#     pass
 
 
 
@@ -88,7 +109,7 @@ if __name__ == '__main__':
     if len(sys.argv) < 2:
         logging.error("missing port arg 1")
         sys.exit(-1)
-
+    load_db()
     p = int(sys.argv[1])
     # Do not set debug=True---that will disable the Prometheus metrics
     app.run(host='0.0.0.0', port=p, threaded=True)
