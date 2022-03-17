@@ -26,17 +26,20 @@ app = Flask(__name__)
 metrics = PrometheusMetrics(app)
 metrics.info('app_info', 'Music process')
 
-db = {
-    "name": "http://cmpt756db:30002/api/v1/datastore",
-    "endpoint": [
-        "read",
-        "write",
-        "delete",
-        "update"
-    ]
-}
+DB_PATH = '/data/music.csv'
 bp = Blueprint('app', __name__)
 
+
+database = {}
+
+
+def load_db():
+    global database
+    with open(DB_PATH, 'r') as inp:
+        rdr = csv.reader(inp)
+        next(rdr)  # Skip header line
+        for artist, songtitle, id in rdr:
+            database[id] = (artist, songtitle)
 
 @bp.route('/', methods=['GET'])
 @metrics.do_not_track()
@@ -47,7 +50,8 @@ def hello_world():
 @bp.route('/health')
 @metrics.do_not_track()
 def health():
-    return Response("", status=200, mimetype="application/json")
+
+    return Response("healthyyyyyyyyy", status=200, mimetype="application/json")
 
 
 @bp.route('/readiness')
@@ -60,7 +64,7 @@ def readiness():
 def create_playlist():
     pass
 
-@bp.route('/playlist_id', methods=['DELETE'])
+@bp.route('/<playlist_id>', methods=['DELETE'])
 def delete_playlist():
     pass
 
