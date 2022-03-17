@@ -85,7 +85,26 @@ def create_playlist():
     }
     return response
 
-
+@bp.route('/<playlist_id>', methods=['DELETE'])
+def delete_playlist(playlist_id):
+    global database
+    check = False
+    deleteList = []
+    for id, value in database.items():
+        userId, songId, playlistId = value[0], value[1], value[2]
+        if playlistId == str(playlist_id):
+            deleteList.append(id)
+            check = True
+    for deleteid in deleteList:
+        del database[deleteid]
+    if check != True:
+        response = {
+            "Count": 0,
+            "Items":[{'User': value[0], 'Song': value[1], 'id': id}
+             for id, value in database.items()]
+        }
+        return app.make_response((response, 404))
+    return {}
 
 @bp.route('/<playlist_id>', methods=['GET'])
 def get_playlist(playlist_id):
