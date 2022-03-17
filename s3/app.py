@@ -43,10 +43,15 @@ def load_db():
             database[id] = (userId, songId, playlistId)
 
 @bp.route('/', methods=['GET'])
-@metrics.do_not_track()
-def hello_world():
-    return ("playlist api working!")
-
+def list_all():
+    global database
+    response = {
+        "Count": len(database),
+        "Items":
+            [{'userId': value[0], 'songId': value[1], 'playlistId': value[2], 'UUID':id}
+             for id, value in database.items()]
+    }
+    return response
 
 @bp.route('/health')
 @metrics.do_not_track()
@@ -63,11 +68,24 @@ def readiness():
 
 @bp.route('/', methods=['POST'])
 def create_playlist():
-    pass
+    global database
+    try:
+        content = request.get_json()
+        UserID = content['UserID']
+        SongID = content['SongID']
+    except Exception:
+        return app.make_response(
+            ({"Message": "Error reading arguments"}, 400)
+            )
+    PlaylistID = int(database[max(database)][2]) + 1
+    id = int(max(database)) + 1
+    database[id] = (UserID, SongID,str(PlaylistID))
+    response = {
+        "id": id
+    }
+    return response
 
-@bp.route('/<playlist_id>', methods=['DELETE'])
-def delete_playlist():
-    pass
+
 
 @bp.route('/<playlist_id>', methods=['GET'])
 def get_playlist(playlist_id):
@@ -105,9 +123,14 @@ def get_playlist(playlist_id):
     
 
 
-@bp.route('/<playlist_id>', methods=['PUT'])
-def update_playlist():
-    pass
+# @bp.route('/<playlist_id>', methods=['GET'])
+# def get_playlist():
+#     pass
+
+
+# @bp.route('/<playlist_id>', methods=['PUT'])
+# def update_playlist():
+#     pass
 
 
 
