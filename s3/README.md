@@ -4,7 +4,7 @@
 ```
 sudo tools/shell.sh 
 
-cd s3_backup
+cd s3
 
 ./builda1.sh
 
