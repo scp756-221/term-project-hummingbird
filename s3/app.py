@@ -7,6 +7,7 @@ Sample application---music service.
 import logging
 import sys
 import csv
+
 # Installed packages
 from flask import Blueprint
 from flask import Flask
@@ -85,9 +86,42 @@ def create_playlist():
     return response
 
 
-# @bp.route('/<playlist_id>', methods=['DELETE'])
-# def delete_playlist():
-#     pass
+
+@bp.route('/<playlist_id>', methods=['GET'])
+def get_playlist(playlist_id):
+    global database
+    if playlist_id in database:
+        userId = None
+        songsId = []
+        uuids = []
+        for i in database:
+            entry = database[i]
+            
+            if entry[2] == playlist_id:
+
+                userId = entry[0]
+                songsId.append(entry[1])
+                uuids.append(i)
+        
+        response = {
+            "Count": 1,
+            "Items":
+            [{
+                'UserId': userId,
+                'SongId': songsId,
+                "playListId": playlist_id,
+                'UUID': uuids
+            }]           
+        }
+    else:
+        response = {
+            "Count": 0,
+            "Items": []
+        }
+        return app.make_response((response, 404))
+    return response
+    
+
 
 # @bp.route('/<playlist_id>', methods=['GET'])
 # def get_playlist():
@@ -109,6 +143,7 @@ if __name__ == '__main__':
     if len(sys.argv) < 2:
         logging.error("missing port arg 1")
         sys.exit(-1)
+
     load_db()
     p = int(sys.argv[1])
     # Do not set debug=True---that will disable the Prometheus metrics
