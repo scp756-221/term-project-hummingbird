@@ -38,7 +38,7 @@ def load_db():
     with open(DB_PATH, 'r') as inp:
         rdr = csv.reader(inp)
         next(rdr)  # Skip header line
-        for userId, songId, playlistId in rdr:
+        for userId, songId, playlistId, id in rdr:
             database[id] = (userId, songId, playlistId)
 
 @bp.route('/', methods=['GET'])
