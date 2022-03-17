@@ -19,7 +19,7 @@ from flask import request
 import unique_code
 
 # The path to the file (CSV format) containing the sample data
-DB_PATH = '/data/playlist.csv'
+DB_PATH = '/data/music.csv'
 
 # The unique exercise code
 # The EXER environment variable has a value specific to this exercise
@@ -39,8 +39,8 @@ def load_db():
     with open(DB_PATH, 'r') as inp:
         rdr = csv.reader(inp)
         next(rdr)  # Skip header line
-        for userId, songId, playlistId, id in rdr:
-            database[id] = (userId, songId, playlistId)
+        for artist, songtitle, id in rdr:
+            database[id] = (artist, songtitle)
 
 
 @bp.route('/health')

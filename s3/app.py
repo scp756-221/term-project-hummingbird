@@ -24,9 +24,9 @@ import simplejson as json
 app = Flask(__name__)
 
 metrics = PrometheusMetrics(app)
-metrics.info('app_info', 'Music process')
+metrics.info('app_info', 'playlist process')
 
-DB_PATH = '/data/music.csv'
+DB_PATH = '/data/playlist.csv'
 bp = Blueprint('app', __name__)
 
 
@@ -38,8 +38,8 @@ def load_db():
     with open(DB_PATH, 'r') as inp:
         rdr = csv.reader(inp)
         next(rdr)  # Skip header line
-        for artist, songtitle, id in rdr:
-            database[id] = (artist, songtitle)
+        for userId, songId, playlistId in rdr:
+            database[id] = (userId, songId, playlistId)
 
 @bp.route('/', methods=['GET'])
 @metrics.do_not_track()
