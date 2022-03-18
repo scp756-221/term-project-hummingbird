@@ -37,7 +37,7 @@ def parse_args():
 
 
 def get_url(name, port, service):
-    return "http://{}:{}/api/v1/{}".format(name, port, service)
+    return "http://{}:{}/api/v1/{}/".format(name, port, service)
 
 
 def parse_quoted_strings(arg):
@@ -96,6 +96,7 @@ Enter 'help' for command list.
                 )
             if r.status_code != 200:
                 print("Non-successful status code:", r.status_code)
+            print(r)
             items = r.json()
             if 'Count' not in items:
                 print("0 items returned")
