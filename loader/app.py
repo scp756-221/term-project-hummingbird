@@ -77,7 +77,7 @@ def create_playlist(UserID, SongID, playlistID, uuid):
         json={"objtype": "playlist",
               "UserID": UserID,
               "SongID": SongID,
-              "playlistID": playlistID
+              "playlistID": playlistID,
               "uuid": uuid})
     return (response.json())
 
@@ -122,7 +122,7 @@ if __name__ == '__main__':
                                                              title,
                                                              uuid))
 
-        with open('{}/playlist/playlist.csv'.format(resource_dir), 'r') as inp:
+    with open('{}/playlist/playlist.csv'.format(resource_dir), 'r') as inp:
         rdr = csv.reader(inp)
         next(rdr)  # Skip header
         for UserID, SongID, playlistID, uuid in rdr:
@@ -134,5 +134,5 @@ if __name__ == '__main__':
             if resp is None or resp != uuid:
                 print('Error creating playlist {} {} {}, {}'.format(UserID,
                                                              SongID,
-                                                             playlistID
+                                                             playlistID,
                                                              uuid))
