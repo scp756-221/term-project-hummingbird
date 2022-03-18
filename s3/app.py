@@ -119,17 +119,17 @@ def get_playlist(playlist_id):
             if entry[2] == playlist_id:
 
                 userId = entry[0]
-                songsId.append(entry[1])
-                uuids.append(i)
+                songId.append(entry[1])
+                uuid.append(i)
         
         response = {
             "Count": 1,
             "Items":
             [{
                 'userId': userId,
-                'songId': songsId,
+                'songId': songId,
                 "playlistId": playlist_id,
-                'UUID': uuids
+                'UUID': uuid
             }]           
         }
     else:
