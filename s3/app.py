@@ -71,8 +71,8 @@ def create_playlist():
     global database
     try:
         content = request.get_json()
-        UserID = content['UserID']
-        SongID = content['SongID']
+        UserID = content['userId']
+        SongID = content['songId']
     except Exception:
         return app.make_response(
             ({"Message": "Error reading arguments"}, 400)
@@ -81,7 +81,7 @@ def create_playlist():
     id = int(max(database)) + 1
     database[id] = (UserID, SongID,str(PlaylistID))
     response = {
-        "id": id
+        "UUID": id
     }
     return response
 
@@ -100,7 +100,7 @@ def delete_playlist(playlist_id):
     if check != True:
         response = {
             "Count": 0,
-            "Items":[{'User': value[0], 'Song': value[1], 'id': id}
+            "Items":[{'userId': value[0], 'songId': value[1], 'UUID': id}
              for id, value in database.items()]
         }
         return app.make_response((response, 404))
@@ -111,8 +111,8 @@ def get_playlist(playlist_id):
     global database
     if playlist_id in database:
         userId = None
-        songsId = []
-        uuids = []
+        songId = []
+        uuid = []
         for i in database:
             entry = database[i]
             
@@ -126,9 +126,9 @@ def get_playlist(playlist_id):
             "Count": 1,
             "Items":
             [{
-                'UserId': userId,
-                'SongId': songsId,
-                "playListId": playlist_id,
+                'userId': userId,
+                'songId': songsId,
+                "playlistId": playlist_id,
                 'UUID': uuids
             }]           
         }
@@ -156,7 +156,7 @@ def get_playlist(playlist_id):
 # All database calls will have this prefix.  Prometheus metric
 # calls will not---they will have route '/metrics'.  This is
 # the conventional organization.
-app.register_blueprint(bp, url_prefix='/api/v1/music/')
+app.register_blueprint(bp, url_prefix='/api/v1/playlist/')
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:
