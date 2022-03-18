@@ -127,6 +127,26 @@ Enter 'help' for command list.
                     i['lname'],
                     i['email']))
 
+        elif self.service == "playlist":
+            url = get_url(self.name, self.port, self.service)
+            r = requests.get(
+                url+arg.strip(),
+                headers={'Authorization': DEFAULT_AUTH}
+                )
+            if r.status_code != 200:
+                print("Non-successful status code:", r.status_code)
+            items = r.json()
+            if 'Count' not in items:
+                print("0 items returned")
+                return
+            print("{} items returned".format(items['Count']))
+            for i in items['Items']:
+                print("{}  {:20.20s} {}".format(
+                    i['userId'],
+                    i['songId'],
+                    i['playlistId'],
+                    i['UUID']))
+
     def do_create(self, arg):
         """
         Add a song to the database.
@@ -167,6 +187,21 @@ Enter 'help' for command list.
                 'fname': args[1],
                 'lname': args[2],
                 'email': args[3]
+            }
+            r = requests.post(
+                url,
+                json=payload,
+                headers={'Authorization': DEFAULT_AUTH}
+            )
+            print(r.json())
+        elif self.service == "playlist":
+            url = get_url(self.name, self.port, self.service)
+            args = parse_quoted_strings(arg)
+            payload = {
+                'userId': args[0],
+                'songId': args[1],
+                'playlistId': args[2],
+                'UUID': args[3]
             }
             r = requests.post(
                 url,
