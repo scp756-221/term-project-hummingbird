@@ -18,22 +18,26 @@ DEFAULT_AUTH = 'Bearer A'
 def parse_args():
     argp = argparse.ArgumentParser(
         'mcli',
-        description='Command-line query interface to music service'
+        description='Command-line query interface to service'
         )
     argp.add_argument(
         'name',
-        help="DNS name or IP address of music server"
+        help="DNS name or IP address of server"
         )
     argp.add_argument(
         'port',
         type=int,
-        help="Port number of music server"
+        help="Port server"
+        )
+    argp.add_argument(
+        'service',
+        help="type  server"
         )
     return argp.parse_args()
 
 
-def get_url(name, port):
-    return "http://{}:{}/api/v1/music/".format(name, port)
+def get_url(name, port, service):
+    return "http://{}:{}/api/v1/{}/".format(name, port, service)
 
 
 def parse_quoted_strings(arg):
@@ -52,6 +56,7 @@ class Mcli(cmd.Cmd):
     def __init__(self, args):
         self.name = args.name
         self.port = args.port
+        self.service = args.service
         cmd.Cmd.__init__(self)
         self.prompt = 'mql: '
         self.intro = """
@@ -83,23 +88,65 @@ Enter 'help' for command list.
         all songs and will instead return an empty list if
         no parameter is provided.
         """
-        url = get_url(self.name, self.port)
-        r = requests.get(
-            url+arg.strip(),
-            headers={'Authorization': DEFAULT_AUTH}
-            )
-        if r.status_code != 200:
-            print("Non-successful status code:", r.status_code)
-        items = r.json()
-        if 'Count' not in items:
-            print("0 items returned")
-            return
-        print("{} items returned".format(items['Count']))
-        for i in items['Items']:
-            print("{}  {:20.20s} {}".format(
-                i['music_id'],
-                i['Artist'],
-                i['SongTitle']))
+        if self.service == "music":
+            url = get_url(self.name, self.port, self.service)
+            r = requests.get(
+                url+arg.strip(),
+                headers={'Authorization': DEFAULT_AUTH}
+                )
+            if r.status_code != 200:
+                print("Non-successful status code:", r.status_code)
+            print(r)
+            items = r.json()
+            if 'Count' not in items:
+                print("0 items returned")
+                return
+            print("{} items returned".format(items['Count']))
+            for i in items['Items']:
+                print("{}  {:20.20s} {}".format(
+                    i['music_id'],
+                    i['Artist'],
+                    i['SongTitle']))
+
+        elif self.service == "user":
+            url = get_url(self.name, self.port, self.service)
+            r = requests.get(
+                url+arg.strip(),
+                headers={'Authorization': DEFAULT_AUTH}
+                )
+            if r.status_code != 200:
+                print("Non-successful status code:", r.status_code)
+            items = r.json()
+            if 'Count' not in items:
+                print("0 items returned")
+                return
+            print("{} items returned".format(items['Count']))
+            for i in items['Items']:
+                print("{}  {:20.20s} {}".format(
+                    i['user_id'],
+                    i['fname'],
+                    i['lname'],
+                    i['email']))
+
+        elif self.service == "playlist":
+            url = get_url(self.name, self.port, self.service)
+            r = requests.get(
+                url+arg.strip(),
+                headers={'Authorization': DEFAULT_AUTH}
+                )
+            if r.status_code != 200:
+                print("Non-successful status code:", r.status_code)
+            items = r.json()
+            if 'Count' not in items:
+                print("0 items returned")
+                return
+            print("{} items returned".format(items['Count']))
+            for i in items['Items']:
+                print("{}  {:20.20s} {}".format(
+                    i['userId'],
+                    i['songId'],
+                    i['playlistId'],
+                    i['UUID']))
 
     def do_create(self, arg):
         """
@@ -120,18 +167,50 @@ Enter 'help' for command list.
         create Chumbawamba Tubthumping
             No quotes needed for single-word artist or title name.
         """
-        url = get_url(self.name, self.port)
-        args = parse_quoted_strings(arg)
-        payload = {
-            'Artist': args[0],
-            'SongTitle': args[1]
-        }
-        r = requests.post(
-            url,
-            json=payload,
-            headers={'Authorization': DEFAULT_AUTH}
-        )
-        print(r.json())
+        if self.service == "music":
+            url = get_url(self.name, self.port, self.service)
+            args = parse_quoted_strings(arg)
+            payload = {
+                'Artist': args[0],
+                'SongTitle': args[1]
+            }
+            r = requests.post(
+                url,
+                json=payload,
+                headers={'Authorization': DEFAULT_AUTH}
+            )
+            print(r.json())
+        elif self.service == "user":
+            url = get_url(self.name, self.port, self.service)
+            args = parse_quoted_strings(arg)
+            payload = {
+                'user_id': args[0],
+                'fname': args[1],
+                'lname': args[2],
+                'email': args[3]
+            }
+            r = requests.post(
+                url,
+                json=payload,
+                headers={'Authorization': DEFAULT_AUTH}
+            )
+            print(r.json())
+        elif self.service == "playlist":
+            url = get_url(self.name, self.port, self.service)
+            args = parse_quoted_strings(arg)
+            payload = {
+                'userId': args[0],
+                'songId': args[1],
+                'playlistId': args[2],
+                'UUID': args[3]
+            }
+            r = requests.post(
+                url,
+                json=payload,
+                headers={'Authorization': DEFAULT_AUTH}
+            )
+            print(r.json())
+
 
     def do_delete(self, arg):
         """
@@ -147,7 +226,7 @@ Enter 'help' for command list.
         delete 6ecfafd0-8a35-4af6-a9e2-cbd79b3abeea
             Delete "The Last Great American Dynasty".
         """
-        url = get_url(self.name, self.port)
+        url = get_url(self.name, self.port, self.service)
         r = requests.delete(
             url+arg.strip(),
             headers={'Authorization': DEFAULT_AUTH}
@@ -165,7 +244,7 @@ Enter 'help' for command list.
         """
         Run a test stub on the music server.
         """
-        url = get_url(self.name, self.port)
+        url = get_url(self.name, self.port, self.service)
         r = requests.get(
             url+'test',
             headers={'Authorization': DEFAULT_AUTH}
@@ -177,7 +256,7 @@ Enter 'help' for command list.
         """
         Tell the music cerver to shut down.
         """
-        url = get_url(self.name, self.port)
+        url = get_url(self.name, self.port, self.service)
         r = requests.get(
             url+'shutdown',
             headers={'Authorization': DEFAULT_AUTH}
