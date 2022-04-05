@@ -27,119 +27,142 @@ app = Flask(__name__)
 metrics = PrometheusMetrics(app)
 metrics.info('app_info', 'playlist process')
 
-DB_PATH = '/data/playlist.csv'
+# DB_PATH = '/data/playlist.csv'
+db = {
+    "name": "http://cmpt756db:30002/api/v1/datastore",
+    "endpoint": [
+        "read",
+        "write",
+        "delete"
+    ]
+}
 bp = Blueprint('app', __name__)
 
 
 database = {}
 
 
-def load_db():
-    global database
-    with open(DB_PATH, 'r') as inp:
-        rdr = csv.reader(inp)
-        next(rdr)  # Skip header line
-        for userId, songId, playlistId, id in rdr:
-            database[id] = (userId, songId, playlistId)
+# def load_db():
+#     global database
+#     with open(DB_PATH, 'r') as inp:
+#         rdr = csv.reader(inp)
+#         next(rdr)  # Skip header line
+#         for userId, songId, playlistId, id in rdr:
+#             database[id] = (userId, songId, playlistId)
 
 @bp.route('/', methods=['GET'])
 def list_all():
-    global database
-    response = {
-        "Count": len(database),
-        "Items":
-            [{'userId': value[0], 'songId': value[1], 'playlistId': value[2], 'UUID':id}
-             for id, value in database.items()]
-    }
-    return response
+    # global database
+    # response = {
+    #     "Count": len(database),
+    #     "Items":
+    #         [{'userId': value[0], 'songId': value[1], 'playlistId': value[2], 'UUID':id}
+    #          for id, value in database.items()]
+    # }
+    # return response
+    pass
 
 @bp.route('/health')
 @metrics.do_not_track()
 def health():
-
-    return Response("healthyyyyyyyyy", status=200, mimetype="application/json")
+    return Response("", status=200, mimetype="application/json")
 
 
 @bp.route('/readiness')
 @metrics.do_not_track()
 def readiness():
-    pass
+    return Response("", status=200, mimetype="application/json")
 
 
 @bp.route('/', methods=['POST'])
 def create_playlist():
-    global database
-    try:
-        content = request.get_json()
-        UserID = content['userId']
-        SongID = content['songId']
-    except Exception:
-        return app.make_response(
-            ({"Message": "Error reading arguments"}, 400)
-            )
-    PlaylistID = int(database[max(database)][2]) + 1
-    id = int(max(database)) + 1
-    database[id] = (UserID, SongID,str(PlaylistID))
-    response = {
-        "UUID": id
-    }
-    return response
+    # global database
+    # try:
+    #     content = request.get_json()
+    #     UserID = content['userId']
+    #     SongID = content['songId']
+    # except Exception:
+    #     return app.make_response(
+    #         ({"Message": "Error reading arguments"}, 400)
+    #         )
+    # PlaylistID = int(database[max(database)][2]) + 1
+    # id = int(max(database)) + 1
+    # database[id] = (UserID, SongID,str(PlaylistID))
+    # response = {
+    #     "UUID": id
+    # }
+    # return response
+    pass
 
 @bp.route('/<playlist_id>', methods=['DELETE'])
 def delete_playlist(playlist_id):
-    global database
-    check = False
-    deleteList = []
-    for id, value in database.items():
-        userId, songId, playlistId = value[0], value[1], value[2]
-        if playlistId == str(playlist_id):
-            deleteList.append(id)
-            check = True
-    for deleteid in deleteList:
-        del database[deleteid]
-    if check != True:
-        response = {
-            "Count": 0,
-            "Items":[{'userId': value[0], 'songId': value[1], 'UUID': id}
-             for id, value in database.items()]
-        }
-        return app.make_response((response, 404))
-    return {}
+    # global database
+    # check = False
+    # deleteList = []
+    # for id, value in database.items():
+    #     userId, songId, playlistId = value[0], value[1], value[2]
+    #     if playlistId == str(playlist_id):
+    #         deleteList.append(id)
+    #         check = True
+    # for deleteid in deleteList:
+    #     del database[deleteid]
+    # if check != True:
+    #     response = {
+    #         "Count": 0,
+    #         "Items":[{'userId': value[0], 'songId': value[1], 'UUID': id}
+    #          for id, value in database.items()]
+    #     }
+    #     return app.make_response((response, 404))
+    # return {}
+    
+    headers = request.headers
+    # check header here
+    if 'Authorization' not in headers:
+        return Response(json.dumps({"error": "missing auth"}),
+                        status=401,
+                        mimetype='application/json')
+    url = db['name'] + '/' + db['endpoint'][2]
+    response = requests.delete(
+        url,
+        params={"objtype": "playlist", "objkey": playlist_id},
+        headers={'Authorization': headers['Authorization']})
+    return (response.json())
+    pass
 
 @bp.route('/<playlist_id>', methods=['GET'])
 def get_playlist(playlist_id):
-    global database
-    if playlist_id in database:
-        userId = None
-        songId = []
-        uuid = []
-        for i in database:
-            entry = database[i]
+    # global database
+    # if playlist_id in database:
+    #     userId = None
+    #     songId = []
+    #     uuid = []
+    #     for i in database:
+    #         entry = database[i]
             
-            if entry[2] == playlist_id:
+    #         if entry[2] == playlist_id:
 
-                userId = entry[0]
-                songId.append(entry[1])
-                uuid.append(i)
+    #             userId = entry[0]
+    #             songId.append(entry[1])
+    #             uuid.append(i)
         
-        response = {
-            "Count": 1,
-            "Items":
-            [{
-                'userId': userId,
-                'songId': songId,
-                "playlistId": playlist_id,
-                'UUID': uuid
-            }]           
-        }
-    else:
-        response = {
-            "Count": 0,
-            "Items": []
-        }
-        return app.make_response((response, 404))
-    return response
-    
+    #     response = {
+    #         "Count": 1,
+    #         "Items":
+    #         [{
+    #             'userId': userId,
+    #             'songId': songId,
+    #             "playlistId": playlist_id,
+    #             'UUID': uuid
+    #         }]           
+    #     }
+    # else:
+    #     response = {
+    #         "Count": 0,
+    #         "Items": []
+    #     }
+    #     return app.make_response((response, 404))
+    # return response
+    pass    
 
 
 # @bp.route('/<playlist_id>', methods=['GET'])
@@ -163,7 +186,7 @@ if __name__ == '__main__':
         logging.error("missing port arg 1")
         sys.exit(-1)
 
-    load_db()
+    # load_db()
     p = int(sys.argv[1])
     # Do not set debug=True---that will disable the Prometheus metrics
     app.run(host='0.0.0.0', port=p, threaded=True)
