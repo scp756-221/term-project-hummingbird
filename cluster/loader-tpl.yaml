@@ -34,6 +34,9 @@ spec:
         - name: users
           mountPath: "/data/users"
           readOnly: true
+        - name: playlist
+          mountPath: "/data/playlist"
+          readOnly: true
       volumes:
       - name: music
         configMap:
