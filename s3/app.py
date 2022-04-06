@@ -127,7 +127,7 @@ def delete_playlist(playlist_id):
         params={"objtype": "playlist", "objkey": playlist_id},
         headers={'Authorization': headers['Authorization']})
     return (response.json())
-    pass
+    
 
 @bp.route('/<playlist_id>', methods=['GET'])
 def get_playlist(playlist_id):
