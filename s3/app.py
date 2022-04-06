@@ -38,7 +38,6 @@ db = {
 }
 bp = Blueprint('app', __name__)
 
-
 database = {}
 
 
@@ -76,47 +75,28 @@ def readiness():
 
 @bp.route('/', methods=['POST'])
 def create_playlist():
-    # global database
-    # try:
-    #     content = request.get_json()
-    #     UserID = content['userId']
-    #     SongID = content['songId']
-    # except Exception:
-    #     return app.make_response(
-    #         ({"Message": "Error reading arguments"}, 400)
-    #         )
-    # PlaylistID = int(database[max(database)][2]) + 1
-    # id = int(max(database)) + 1
-    # database[id] = (UserID, SongID,str(PlaylistID))
-    # response = {
-    #     "UUID": id
-    # }
-    # return response
-    pass
+    headers = request.headers
+    # check header here
+    if 'Authorization' not in headers:
+        return Response(json.dumps({"error": "missing auth"}),
+                        status=401,
+                        mimetype='application/json')
+    try:
+        content = request.get_json()
+        user = content['user']
+        song = content['song']
+    except Exception:
+        return json.dumps({"message": "error reading arguments"})
+    url = db['name'] + '/' + db['endpoint'][1]
+    response = requests.post(
+        url,
+        json={"objtype": "playlist", "user": user, "song": song},
+        headers={'Authorization': headers['Authorization']})
+    return (response.json())
 
 @bp.route('/<playlist_id>', methods=['DELETE'])
 def delete_playlist(playlist_id):
-    # global database
-    # check = False
-    # deleteList = []
-    # for id, value in database.items():
-    #     userId, songId, playlistId = value[0], value[1], value[2]
-    #     if playlistId == str(playlist_id):
-    #         deleteList.append(id)
-    #         check = True
-    # for deleteid in deleteList:
-    #     del database[deleteid]
-    # if check != True:
-    #     response = {
-    #         "Count": 0,
-    #         "Items":[{'userId': value[0], 'songId': value[1], 'UUID': id}
-    #          for id, value in database.items()]
-    #     }
-    #     return app.make_response((response, 404))
-    # return {}
-    
     headers = request.headers
-    # check header here
     if 'Authorization' not in headers:
         return Response(json.dumps({"error": "missing auth"}),
                         status=401,
@@ -127,43 +107,24 @@ def delete_playlist(playlist_id):
         params={"objtype": "playlist", "objkey": playlist_id},
         headers={'Authorization': headers['Authorization']})
     return (response.json())
-    
+
 
 @bp.route('/<playlist_id>', methods=['GET'])
 def get_playlist(playlist_id):
-    # global database
-    # if playlist_id in database:
-    #     userId = None
-    #     songId = []
-    #     uuid = []
-    #     for i in database:
-    #         entry = database[i]
-            
-    #         if entry[2] == playlist_id:
-
-    #             userId = entry[0]
-    #             songId.append(entry[1])
-    #             uuid.append(i)
-        
-    #     response = {
-    #         "Count": 1,
-    #         "Items":
-    #         [{
-    #             'userId': userId,
-    #             'songId': songId,
-    #             "playlistId": playlist_id,
-    #             'UUID': uuid
-    #         }]           
-    #     }
-    # else:
-    #     response = {
-    #         "Count": 0,
-    #         "Items": []
-    #     }
-    #     return app.make_response((response, 404))
-    # return response
-    pass    
-
+    headers = request.headers
+    if 'Authorization' not in headers:
+        return Response(json.dumps({"error": "missing auth"}),
+                        status=401,
+                        mimetype='application/json')
+    payload = {"objtype": "playlist", "objkey": playlist_id}
+    url = db['name'] + '/' + db['endpoint'][0]
+    response = requests.get(
+        url,
+        params = payload,
+        headers = {'Authorization': headers['Authorization']}
+    )
+    return (response.json())
+    
 
 # @bp.route('/<playlist_id>', methods=['GET'])
 # def get_playlist():
