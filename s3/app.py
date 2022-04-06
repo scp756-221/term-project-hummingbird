@@ -40,6 +40,7 @@ bp = Blueprint('app', __name__)
 
 database = {}
 
+
 # def load_db():
 #     global database
 #     with open(DB_PATH, 'r') as inp:
@@ -50,26 +51,26 @@ database = {}
 
 @bp.route('/', methods=['GET'])
 def list_all():
-    global database
-    response = {
-        "Count": len(database),
-        "Items":
-            [{'userId': value[0], 'songId': value[1], 'playlistId': value[2], 'UUID':id}
-             for id, value in database.items()]
-    }
-    return response
+    # global database
+    # response = {
+    #     "Count": len(database),
+    #     "Items":
+    #         [{'userId': value[0], 'songId': value[1], 'playlistId': value[2], 'UUID':id}
+    #          for id, value in database.items()]
+    # }
+    # return response
+    pass
 
 @bp.route('/health')
 @metrics.do_not_track()
 def health():
-
-    return Response("healthyyyyyyyyy", status=200, mimetype="application/json")
+    return Response("", status=200, mimetype="application/json")
 
 
 @bp.route('/readiness')
 @metrics.do_not_track()
 def readiness():
-    pass
+    return Response("", status=200, mimetype="application/json")
 
 
 @bp.route('/', methods=['POST'])
@@ -124,7 +125,6 @@ def get_playlist(playlist_id):
     )
     return (response.json())
     
-
 
 # @bp.route('/<playlist_id>', methods=['GET'])
 # def get_playlist():
