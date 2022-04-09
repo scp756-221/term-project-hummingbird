@@ -53,7 +53,29 @@ object RUser {
   }
 
 }
+object RPlaylist {
 
+  val feeder = csv("playlist.csv").eager.circular
+
+  val rplaylist = forever("i") {
+    feed(feeder)
+    .exec(http("RPlaylist ${i}")
+      .get("/api/v1/playlist/${UUID}"))
+    .pause(1)
+  }
+
+}
+
+object RPlaylistVarying {
+  val feeder = csv("playlist.csv").eager.circular
+
+  val rplaylist = forever("i") {
+    feed(feeder)
+    .exec(http("RPlaylistVarying ${i}")
+      .get("/api/v1/playlist/${UUID}"))
+    .pause(1, 60)
+  }
+}
 /*
   After one S1 read, pause a random time between 1 and 60 s
 */
@@ -92,7 +114,7 @@ object RBoth {
 
   val u_feeder = csv("users.csv").eager.circular
   val m_feeder = csv("music.csv").eager.random
-
+  var p_feeder = csv("playlist.csv").eager.random
   val rboth = forever("i") {
     feed(u_feeder)
     .exec(http("RUser ${i}")
@@ -102,6 +124,10 @@ object RBoth {
     feed(m_feeder)
     .exec(http("RMusic ${i}")
       .get("/api/v1/music/${UUID}"))
+      .pause(1);
+    feed(p_feeder)
+    .exec(http("RPlaylist ${i}")
+      .get("/api/v1/playlist/${UUID}"))
       .pause(1)
   }
 
@@ -121,7 +147,7 @@ class ReadUserSim extends ReadTablesSim {
       .exec(RUser.ruser)
 
   setUp(
-    scnReadUser.inject(atOnceUsers(Utility.envVarToInt("USERS", 1)))
+    scnReadUser.inject(atOnceUsers(Utility.envVarToInt("USERS", 100)))
   ).protocols(httpProtocol)
 }
 
@@ -130,10 +156,17 @@ class ReadMusicSim extends ReadTablesSim {
     .exec(RMusic.rmusic)
 
   setUp(
-    scnReadMusic.inject(atOnceUsers(Utility.envVarToInt("USERS", 1)))
+    scnReadMusic.inject(atOnceUsers(Utility.envVarToInt("USERS", 100)))
   ).protocols(httpProtocol)
 }
+class ReadPlaylistSim extends ReadTablesSim {
+  val scnReadMusic = scenario("ReadPlaylist")
+    .exec(RPlaylist.rplaylist)
 
+  setUp(
+    scnReadMusic.inject(atOnceUsers(Utility.envVarToInt("USERS", 100)))
+  ).protocols(httpProtocol)
+}
 /*
   Read both services concurrently at varying rates.
   Ramp up new users one / 10 s until requested USERS
@@ -146,12 +179,15 @@ class ReadBothVaryingSim extends ReadTablesSim {
   val scnReadUV = scenario("ReadUserVarying")
     .exec(RUserVarying.ruser)
 
+  var scnReadPV = scenario("ReadPlaylistVarying")
+
   val users = Utility.envVarToInt("USERS", 10)
 
   setUp(
     // Add one user per 10 s up to specified value
     scnReadMV.inject(rampConcurrentUsers(1).to(users).during(10*users)),
-    scnReadUV.inject(rampConcurrentUsers(1).to(users).during(10*users))
+    scnReadUV.inject(rampConcurrentUsers(1).to(users).during(10*users)),
+    scnReadPV.inject(rampConcurrentUsers(1).to(users).during(10*users))
   ).protocols(httpProtocol)
 }
 

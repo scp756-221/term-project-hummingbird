@@ -19,4 +19,4 @@ EXPOSE 30001
 ARG EXERARG=v0.75
 ENV EXER=${EXERARG}
 
-CMD ["python", "app.py", "30003"]
+CMD ["python", "app.py", "30001"]
