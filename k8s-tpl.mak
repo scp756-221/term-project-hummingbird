@@ -113,7 +113,7 @@ scratch: clean
 
 # --- clean: Delete all the application log files
 clean:
-	/bin/rm -f $(LOG_DIR)/{s1,s2,db,gw,monvs}*.log $(LOG_DIR)/rollout*.log
+	/bin/rm -f $(LOG_DIR)/{s1,s2, s3, db,gw,monvs}*.log $(LOG_DIR)/rollout*.log
 
 # --- dashboard: Start the standard Kubernetes dashboard
 # NOTE:  Before invoking this, the dashboard must be installed and a service account created
@@ -135,6 +135,10 @@ log-s1:
 
 log-s2:
 	$(KC) -n $(APP_NS) logs deployment/cmpt756s2 --container cmpt756s2
+	
+log-s3:
+	$(KC) -n $(APP_NS) logs deployment/cmpt756s3 --container cmpt756s3
+
 
 log-db:
 	$(KC) -n $(APP_NS) logs deployment/cmpt756db --container cmpt756db
@@ -148,6 +152,10 @@ shell-s1:
 shell-s2:
 	@echo Use the following command line to drop into the s2 service:
 	@echo   $(KC) -n $(APP_NS) exec -it deployment/cmpt756s2 --container cmpt756s2 -- bash
+	
+shell-s3:
+	@echo Use the following command line to drop into the s3 service:
+	@echo   $(KC) -n $(APP_NS) exec -it deployment/cmpt756s3 --container cmpt756s3 -- bash
 
 shell-db:
 	@echo Use the following command line to drop into the db service:
@@ -181,6 +189,7 @@ loader: dynamodb-init $(LOG_DIR)/loader.repo.log cluster/loader.yaml
 	$(KC) -n $(APP_NS) delete --ignore-not-found=true jobs/cmpt756loader
 	tools/build-configmap.sh gatling/resources/users.csv cluster/users-header.yaml | kubectl -n $(APP_NS) apply -f -
 	tools/build-configmap.sh gatling/resources/music.csv cluster/music-header.yaml | kubectl -n $(APP_NS) apply -f -
+	tools/build-configmap.sh gatling/resources/playlist.csv cluster/playlist-header.yaml | kubectl -n $(APP_NS) apply -f -
 	$(KC) -n $(APP_NS) apply -f cluster/loader.yaml | tee $(LOG_DIR)/loader.log
 
 # --- dynamodb-init: set up our DynamoDB tables
@@ -319,6 +328,12 @@ $(LOG_DIR)/s2-$(S2_VER).repo.log: s2/$(S2_VER)/Dockerfile s2/$(S2_VER)/app.py s2
 	$(DK) build $(ARCH) -t $(CREG)/$(REGID)/cmpt756s2:$(S2_VER) s2/$(S2_VER) | tee $(LOG_DIR)/s2-$(S2_VER).img.log
 	$(DK) push $(CREG)/$(REGID)/cmpt756s2:$(S2_VER) | tee $(LOG_DIR)/s2-$(S2_VER).repo.log
 
+# Build the s3 service
+$(LOG_DIR)/s3.repo.log: s3/Dockerfile s3/app.py s3/requirements.txt
+	make -f k8s.mak --no-print-directory registry-login
+	$(DK) build $(ARCH) -t $(CREG)/$(REGID)/cmpt756s3:$(S2_VER) s3 | tee $(LOG_DIR)/s3.img.log
+	$(DK) push $(CREG)/$(REGID)/cmpt756s3:$(S2_VER) | tee $(LOG_DIR)/s3.repo.log
+
 # Build the db service
 $(LOG_DIR)/db.repo.log: db/Dockerfile db/app.py db/requirements.txt
 	make -f k8s.mak --no-print-directory registry-login
@@ -336,6 +351,7 @@ $(LOG_DIR)/loader.repo.log: loader/app.py loader/requirements.txt loader/Dockerf
 cr: registry-login
 	$(DK) push $(CREG)/$(REGID)/cmpt756s1:$(APP_VER_TAG) | tee $(LOG_DIR)/s1.repo.log
 	$(DK) push $(CREG)/$(REGID)/cmpt756s2:$(S2_VER) | tee $(LOG_DIR)/s2.repo.log
+	$(DK) push $(CREG)/$(REGID)/cmpt756s3:$(S2_VER) | tee $(LOG_DIR)/s3.repo.log
 	$(DK) push $(CREG)/$(REGID)/cmpt756db:$(APP_VER_TAG) | tee $(LOG_DIR)/db.repo.log
 
 # ---------------------------------------------------------------------------------------
