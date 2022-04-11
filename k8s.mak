@@ -64,12 +64,12 @@ templates:
 #
 #  Nov 2021: Kiali is causing problems so do not deploy
 #provision: istio prom kiali deploy
-provision: istio prom kiali deploy 
+provision: istio prom deploy kiali 
 
 # --- deploy: Deploy and monitor the three microservices
 # Use `provision` to deploy the entire stack (including Istio, Prometheus, ...).
 # This target only deploys the sample microservices
-deploy: appns gw s1 s2 s3 db monitoring
+deploy: appns monitoring gw s1 s2 s3 db 
 	$(KC) -n $(APP_NS) get gw,vs,deploy,svc,pods
 
 # --- rollout: Rollout new deployments of all microservices
