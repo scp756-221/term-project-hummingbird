@@ -128,7 +128,7 @@ if __name__ == '__main__':
         for UserID, SongID, uuid in rdr:
             
             resp = create_playlist(UserID.strip(),
-                               SongID.strip(),
+                               SongID.strip().split(','),
                                uuid.strip())
             resp = check_resp(resp, 'playlist_id')
             if resp is None or resp != uuid:

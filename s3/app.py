@@ -83,15 +83,15 @@ def create_playlist():
                         mimetype='application/json')
     try:
         content = request.get_json()
-        user = content['user']
-        song = content['song']
+        user = content['UserID']
+        song = content['SongID']
         song_list = song.strip().split(',')
     except Exception:
         return json.dumps({"message": "error reading arguments"})
     url = db['name'] + '/' + db['endpoint'][1]
     response = requests.post(
         url,
-        json={"objtype": "playlist", "user": user, "song": song_list},
+        json={"objtype": "playlist", "UserID": user, "SongID": song_list},
         headers={'Authorization': headers['Authorization']})
     return (response.json())
 

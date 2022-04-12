@@ -42,7 +42,7 @@ ISTIO_NS=istio-system
 # this is used to switch M1 Mac to x86 for compatibility with x86 instances/students
 ARCH=--platform x86_64
 
-.PHONY: db
+
 # ----------------------------------------------------------------------------------------
 # -------  Targets to be invoked directly from command line                        -------
 # ----------------------------------------------------------------------------------------
@@ -64,16 +64,16 @@ templates:
 #
 #  Nov 2021: Kiali is causing problems so do not deploy
 #provision: istio prom kiali deploy
-provision: istio prom kiali deploy 
+provision: istio prom deploy kiali 
 
 # --- deploy: Deploy and monitor the three microservices
 # Use `provision` to deploy the entire stack (including Istio, Prometheus, ...).
 # This target only deploys the sample microservices
-deploy: appns gw s1 s2 s3 db monitoring
+deploy: appns monitoring gw s1 s2 s3 db 
 	$(KC) -n $(APP_NS) get gw,vs,deploy,svc,pods
 
 # --- rollout: Rollout new deployments of all microservices
-rollout: rollout-s1 rollout-s2 rollout-db
+rollout: rollout-s1 rollout-s2 rollout-s3 rollout-db
 
 # --- rollout-s1: Rollout a new deployment of S1
 rollout-s1: s1
@@ -181,7 +181,7 @@ loader: dynamodb-init $(LOG_DIR)/loader.repo.log cluster/loader.yaml
 	$(KC) -n $(APP_NS) delete --ignore-not-found=true jobs/cmpt756loader
 	tools/build-configmap.sh gatling/resources/users.csv cluster/users-header.yaml | kubectl -n $(APP_NS) apply -f -
 	tools/build-configmap.sh gatling/resources/music.csv cluster/music-header.yaml | kubectl -n $(APP_NS) apply -f -
-	tools/build-configmap.sh s3/playlist.csv cluster/playlist-header.yaml | kubectl -n $(APP_NS) apply -f -
+	tools/build-configmap.sh gatling/resources/playlist.csv cluster/playlist-header.yaml | kubectl -n $(APP_NS) apply -f -
 	$(KC) -n $(APP_NS) apply -f cluster/loader.yaml | tee $(LOG_DIR)/loader.log
 
 # --- dynamodb-init: set up our DynamoDB tables
